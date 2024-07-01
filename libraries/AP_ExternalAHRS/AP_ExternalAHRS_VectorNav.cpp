@@ -374,14 +374,15 @@ bool AP_ExternalAHRS_VectorNav::decode(char c) {
 // decode the most recently consumed term
 // returns true if new sentence has just passed checksum test and is validated
 bool AP_ExternalAHRS_VectorNav::decode_latest_term() {
+    // Check the first two terms (In most cases header + reg number) that they match the sent
+    // message. If not, the response is invalid.
     switch (nmea.term_number) {
         case 0: {
             if (!strncmp(nmea.term, message_to_send, strlen(nmea.term))) {
                 return false;
-            } else if (strcmp(nmea.term, "VNERR") != 0) {
+            } else if (strcmp(nmea.term, "VNERR")) {
                 GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "%s", nmea.term);
                 AP_HAL::panic("VectorNav received unexpected VN error");
-                return false;
             }
             break;
         }
