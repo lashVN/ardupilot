@@ -303,7 +303,7 @@ void AP_ExternalAHRS_VectorNav::wait_register_response() {
         const uint32_t now = AP_HAL::millis();
         if (now - request_sent > READ_REQUEST_RETRY_MS) {
             // Send request to read
-            nmea_printf(uart, "$%s%u", "%s", message_to_send);
+            nmea_printf(uart, "%s", message_to_send);
             request_sent = now;
         }
 
@@ -375,29 +375,30 @@ bool AP_ExternalAHRS_VectorNav::decode(char c) {
 // returns true if new sentence has just passed checksum test and is validated
 bool AP_ExternalAHRS_VectorNav::decode_latest_term() {
     switch (nmea.term_number) {
-        case 0:
+        case 0: {
             if (!strncmp(nmea.term, message_to_send, strlen(nmea.term))) {
                 return false;
             } else if (strcmp(nmea.term, "VNERR") != 0) {
-                GCS_SEND_TEXT(MAV_SEVERITY_ERROR, nmea.term);
+                GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "%s", nmea.term);
                 AP_HAL::panic("VectorNav received unexpected VN error");
                 return false;
             }
             break;
-
-        case 1:
+        }
+        case 1: {
             if (!strncmp(nmea.term, message_to_send + 6,
                          strlen(nmea.term))) {  // Start after "VNXXX,"
                 return false;
             }
             break;
-
-        case 2:
+        }
+        case 2: {
             const bool is_model_number = strncmp(nmea.term, "VN-", 3);
             if (is_model_number) {
                 strncpy(model_name, nmea.term, sizeof(model_name));
                 break;
             }
+        }
         default:
             break;
     }
