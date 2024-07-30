@@ -470,7 +470,7 @@ void AP_ExternalAHRS_VectorNav::update_thread() {
     initialize();
     while (true) {
         if (!check_uart()) {
-            hal.scheduler->delay(1);
+            hal.scheduler->delay_microseconds(200);
         }
     }
 }
