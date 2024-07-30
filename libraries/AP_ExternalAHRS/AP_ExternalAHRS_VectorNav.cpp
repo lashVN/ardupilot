@@ -315,6 +315,7 @@ void AP_ExternalAHRS_VectorNav::run_command(const char * fmt, ...)
 
         const uint32_t now = AP_HAL::millis();
         if (now - request_sent > READ_REQUEST_RETRY_MS) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "VectorNav running command: $%s", message_to_send);
             nmea_printf(uart, "$%s", message_to_send);
             request_sent = now;
         }
