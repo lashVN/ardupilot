@@ -468,10 +468,18 @@ void AP_ExternalAHRS_VectorNav::initialize() {
 
 void AP_ExternalAHRS_VectorNav::update_thread() {
     initialize();
+    uint16_t loop_cnt = 0;
     while (true) {
+        // Roughly once per second, check that we are healthy. If not, attempt to reconfigure sensor.
+        if (loop_cnt > 5000 && !healthy()) {
+            GCS_SEND_TEXT(MAV_SEVERITY_ALERT, "VectorNav lost connection, attempting reinitialization.");
+            initialize();
+            loop_cnt = 0;
+        }
         if (!check_uart()) {
             hal.scheduler->delay_microseconds(200);
         }
+        ++loop_cnt;
     }
 }
 
