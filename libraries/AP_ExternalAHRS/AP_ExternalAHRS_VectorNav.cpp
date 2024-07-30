@@ -468,6 +468,7 @@ void AP_ExternalAHRS_VectorNav::initialize() {
     // Resume asynchronous communications
     run_command("VNASY,1");
     setup_complete = true;
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "VectorNav setup complete.");
 }
 
 void AP_ExternalAHRS_VectorNav::update_thread() {
