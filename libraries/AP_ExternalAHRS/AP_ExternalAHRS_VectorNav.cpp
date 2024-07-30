@@ -438,26 +438,29 @@ void AP_ExternalAHRS_VectorNav::initialize() {
 
     // Read Model Number Register, ID 1
     run_command("VNRRG,01");
+    
+    // This assumes unit is still configured at its default IMU rate of 400hz for VN-300, 800hz for others
+    const uint16_t imu_rate = (strncmp(model_name, "VN-300", 6) == 0) ? 400 : 800;
+    const uint16_t imu_rate_divisor = imu_rate / get_rate();
+    run_command("VNWRG,75,3,%u,01,0721", imu_rate_divisor);
+    
+    // Set IMU filtering to match IMU output rate
+    run_command("VNWRG,85,0,%u,%u,%u,0,0,3,3,3,0", imu_rate_divisor, imu_rate_divisor, imu_rate_divisor);
 
     // Setup for messages respective model types (on both UARTs)
     if (strncmp(model_name, "VN-1", 4) == 0) {
         // VN-1X0
         type = TYPE::VN_AHRS;
 
-        // These assumes unit is still configured at its default rate of 800hz
-        run_command("VNWRG,75,3,%u,01,0721", unsigned(800 / get_rate()));
         run_command("VNWRG,76,3,16,11,0001,0106");
+
     } else {
         // Default to setup for sensors other than VN-100 or VN-110
-        // This assumes unit is still configured at its default IMU rate of 400hz for VN-300, 800hz for others
-        uint16_t imu_rate = 800;  // Default for everything but VN-300
-        if (strncmp(model_name, "VN-300", 6) == 0) {
-            imu_rate = 400;
-        }
         if (strncmp(model_name, "VN-3", 4) == 0) {
             has_dual_gnss = true;
         }
-        run_command("VNWRG,75,3,%u,01,0721", unsigned(imu_rate / get_rate()));
+
+        run_command("VNWRG,75,3,%u,01,0721", imu_rate_divisor);
         run_command("VNWRG,76,3,%u,31,0001,0106,0613", unsigned(imu_rate / 50));
         run_command("VNWRG,77,3,%u,49,0003,26B8,0018", unsigned(imu_rate / 5));
     }
